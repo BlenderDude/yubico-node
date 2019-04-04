@@ -1,0 +1,25 @@
+{
+    "name": "yubico-node",
+    "version": "0.0.1",
+    "description": "A NodeJS implementation of the Yubico OTP API",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "repository": "https://github.com/BlenderDude/yubico-node",
+    "author": "Daniel Abdelsamed",
+    "keywords": [
+        "Yubikey",
+        "OTP"
+    ],
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^11.13.0",
+        "tslint": "^5.15.0",
+        "typescript": "^3.4.1"
+    },
+    "scripts": {
+        "build": "tsc",
+        "lint": "tslint -p tsconfig.json",
+        "prepare": "npm run build",
+        "prepublishOnly": "npm run lint"
+    }
+}
