@@ -13,8 +13,8 @@ const API_SERVERS = [
 export type SL = number | "fast" | "secure";
 
 export interface IYubicoConstructor {
-    clientId: string;
-    secret: string;
+    clientId?: string;
+    secret?: string;
     sl?: SL;
     timeout?: number;
     apiServers?: string[];
@@ -59,12 +59,52 @@ export class Yubico {
      */
     private apiServers: string[];
 
-    constructor(input: IYubicoConstructor) {
-        this.clientId = input.clientId;
-        this.secret = input.secret;
-        this.sl = input.sl;
-        this.timeout = input.timeout;
-        this.apiServers = input.apiServers ? input.apiServers : API_SERVERS;
+    constructor(options?: IYubicoConstructor) {
+        if (options && options.clientId) {
+            this.clientId = options.clientId;
+        } else {
+            if (!process.env.YUBICO_CLIENT_ID) {
+                throw new Error(
+                    "Either clientId must be set in the constructor," +
+                        "or YUBICO_CLIENT_ID set as an environment variable",
+                );
+            }
+            this.clientId = process.env.YUBICO_CLIENT_ID;
+        }
+
+        if (options && options.secret) {
+            this.secret = options.secret;
+        } else {
+            if (!process.env.YUBICO_SECRET) {
+                throw new Error(
+                    "Either clientId must be set in the constructor," +
+                        "or YUBICO_SECRET set as an environment variable",
+                );
+            }
+            this.secret = process.env.YUBICO_SECRET;
+        }
+
+        if (options && options.sl) {
+            this.sl = options.sl;
+        } else {
+            this.sl = process.env.YUBICO_SL as SL;
+        }
+
+        if (options && options.timeout) {
+            this.timeout = options.timeout;
+        } else {
+            this.timeout = process.env.YUBICO_TIMEOUT
+                ? parseInt(process.env.YUBICO_TIMEOUT, 10)
+                : undefined;
+        }
+
+        if (options && options.apiServers) {
+            this.apiServers = options.apiServers;
+        } else {
+            this.apiServers = process.env.YUBICO_API_SERVERS
+                ? process.env.YUBICO_API_SERVERS.split(",")
+                : API_SERVERS;
+        }
     }
 
     /**
