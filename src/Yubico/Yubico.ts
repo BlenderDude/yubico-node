@@ -96,9 +96,9 @@ export class Yubico {
     /**
      * Verify a key against the Yubico servers
      * @param otp {string} The OTP provided from the YubiKey to use to verify
-     * @returns {Response} The response instance that can be picked apart for values like the serial number
+     * @returns {Promise<Response>} The response instance that can be picked apart for values like the serial number
      */
-    public async verify(otp: string) {
+    public async verify(otp: string): Promise<Response> {
         // Generate a nonce to send with the request
         // The Yubico docs state that the key can be between 16 and 40 characters long, so we
         // generate 20 bytes and convert it to 40 characters

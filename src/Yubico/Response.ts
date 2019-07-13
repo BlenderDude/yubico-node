@@ -31,7 +31,7 @@ export class Response {
      * @param body {string} Body from the Yubico server
      * @returns {Response} Newly generated Response instance from the input
      */
-    public static fromRawBody(body: string) {
+    public static fromRawBody(body: string): Response {
         // Grab all the key balue pairs from the response and
         // split them into an array. We relace the \r\n's with \n's to
         // sanitize the response. Slice off the last 2 elements as they
@@ -145,21 +145,21 @@ export class Response {
     /**
      * @returns {string} the one time password used in the request
      */
-    public getOneTimePassword() {
+    public getOneTimePassword(): string {
         return this.otp;
     }
 
     /**
      * @returns {Date} Timestamp of the request in UTC
      */
-    public getTimestampUTC() {
+    public getTimestampUTC(): Date {
         return new Date(this.t * 1000);
     }
 
     /**
      * @returns {Date} YubiKey internal timestamp value when key was pressed
      */
-    public getTimestamp() {
+    public getTimestamp(): Date {
         return new Date(this.timestamp);
     }
 
@@ -194,7 +194,7 @@ export class Response {
     /**
      * @returns {number} The serial number of the key described as a 48 bit number
      */
-    public getSerialNumber() {
+    public getSerialNumber(): number {
         const publicId = this.getPublicId();
 
         // Convert the modHex to a UIntBE as described here
