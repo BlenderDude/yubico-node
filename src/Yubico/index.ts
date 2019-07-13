@@ -1,2 +1,2 @@
 export * from "./Yubico";
-export { Response } from "./Response";
+export { ResponseStatus } from "./Response";

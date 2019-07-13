@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 
-enum ResponseStatus {
+export enum ResponseStatus {
     OK = "OK",
     BAD_OTP = "BAD_OTP",
     REPLAYED_OTP = "REPLAYED_OTP",
@@ -26,7 +26,12 @@ interface IResponse {
 }
 
 export class Response {
-    public static fromRawBody(body: string) {
+    /**
+     * Creates a response from a string body
+     * @param body {string} Body from the Yubico server
+     * @returns {Response} Newly generated Response instance from the input
+     */
+    public static fromRawBody(body: string): Response {
         // Grab all the key balue pairs from the response and
         // split them into an array. We relace the \r\n's with \n's to
         // sanitize the response. Slice off the last 2 elements as they
@@ -73,107 +78,128 @@ export class Response {
         private sessioncounter: string,
         private sessionuse: string,
         private sl: number,
-    ) {
+    ) {}
+
+    /**
+     * Validate the request against the nonce, secret, and otp
+     * @param nonce {string} Nonce used during the request
+     * @param secret {string} Secret used to verify against
+     * @param otp {string} OTP from when the key was pressed
+     */
+    public validate(nonce: string, secret: string, otp: string) {
         if (this.status !== ResponseStatus.OK) {
             const errorMessages = {
                 [ResponseStatus.BAD_OTP]: "The OTP is invalid format",
-                [ResponseStatus.REPLAYED_OTP]:
-                    "The OTP has already been seen by the service.",
-                [ResponseStatus.BAD_SIGNATURE]:
-                    "The HMAC signature verification failed.",
-                [ResponseStatus.MISSING_PARAMETER]:
-                    "The request lacks a parameter.",
+                [ResponseStatus.REPLAYED_OTP]: "The OTP has already been seen by the service.",
+                [ResponseStatus.BAD_SIGNATURE]: "The HMAC signature verification failed.",
+                [ResponseStatus.MISSING_PARAMETER]: "The request lacks a parameter.",
                 [ResponseStatus.NO_SUCH_CLIENT]:
-                    "The request id does not exist.",
-                [ResponseStatus.OPERATION_NOT_ALLOWED]:
-                    "The request id is not allowed to verify OTPs.",
-                [ResponseStatus.BACKEND_ERROR]:
-                    "Unexpected error in our server. Please contact Yubico if you see this error.",
-                [ResponseStatus.NOT_ENOUGH_ANSWERS]:
-                    "Server could not get requested number of syncs during before timeout.",
-                [ResponseStatus.REPLAYED_REQUEST]:
-                    "Server has seen the OTP/Nonce combination before",
+                    "The client id does not exist. If you just registered for one, please give it 10 minutes to propagate",
+                [ResponseStatus.OPERATION_NOT_ALLOWED]: "The client id is not allowed to verify OTPs.",
+                [ResponseStatus.BACKEND_ERROR]: "Unexpected error in our server. Please contact Yubico if you see this error.",
+                [ResponseStatus.NOT_ENOUGH_ANSWERS]: "Server could not get requested number of syncs during before timeout.",
+                [ResponseStatus.REPLAYED_REQUEST]: "Server has seen the OTP/Nonce combination before",
             };
 
             const errorMessage = errorMessages[this.status];
 
             if (!errorMessage) {
-                throw new Error("Unkown status " + this.status);
+                throw new Error("Unknown status " + this.status);
             }
 
             throw new Error(errorMessage);
         }
-    }
 
-    public validate(nonce: string, secret: string, otp: string) {
         if (this.nonce !== nonce) {
             throw new Error("Nonces do not equal");
         }
 
-        const keys = [
-            "nonce",
-            "otp",
-            "sessioncounter",
-            "sessionuse",
-            "sl",
-            "status",
-            "t",
-            "timestamp",
-        ];
+        // Define the keys used in the hash
+        const keys = ["nonce", "otp", "sessioncounter", "sessionuse", "sl", "status", "t", "timestamp"];
 
+        // Concatenate all the keys as they would be used in a HTTP request
         const body = keys
             .filter((key) => (this as any)[key] !== undefined)
             .sort()
             .map((key) => key + "=" + (this as any)[key])
             .join("&");
 
+        // Hash them to compare against the server's assertion
         const hash = crypto
             .createHmac("sha1", Buffer.from(secret, "base64"))
             .update(body)
             .digest("base64");
 
+        // If the hashes diverge, the response should not be trusted and we throw an error
         if (hash !== this.h) {
-            throw new Error(
-                "Hash provided from server and client hash do not match",
-            );
+            throw new Error("Hash provided from server and client hash do not match");
         }
 
+        // If the OTPs don't match, throw an error as the response was tampered with
+        // The hash should pick this up, but you can never be too sure
         if (this.otp !== otp) {
             throw new Error("OTPs do not match");
         }
     }
 
-    public getOneTimePassword() {
+    /**
+     * @returns {string} the one time password used in the request
+     */
+    public getOneTimePassword(): string {
         return this.otp;
     }
 
-    public getTimestampUTC() {
+    /**
+     * @returns {Date} Timestamp of the request in UTC
+     */
+    public getTimestampUTC(): Date {
         return new Date(this.t * 1000);
     }
 
-    public getTimestamp() {
+    /**
+     * @returns {Date} YubiKey internal timestamp value when key was pressed
+     */
+    public getTimestamp(): Date {
         return new Date(this.timestamp);
     }
 
-    public getSessionCounter() {
-        return this.sessioncounter;
+    /**
+     * @returns {number} YubiKey internal usage counter when key was pressed
+     */
+    public getSessionCounter(): number {
+        return parseInt(this.sessioncounter, 10);
     }
 
-    public getSessionUser() {
-        return this.sessionuse;
+    /**
+     * @returns {number} YubiKey internal session usage counter when key was pressed
+     */
+    public getSessionUse(): number {
+        return parseInt(this.sessionuse, 10);
     }
 
-    public getStatus() {
+    /**
+     * @returns {ResponseStatus} The status of the request. This will only show OK as all others will throw
+     */
+    public getStatus(): ResponseStatus {
         return this.status;
     }
 
-    public getPublicId() {
+    /**
+     * @returns {string} The public ID is the first 12 bytes of the OTP, this does not change between each request and can be used to identify users
+     */
+    public getPublicId(): string {
         return this.otp.substr(0, 12);
     }
 
-    public getSerialNumber() {
+    /**
+     * @returns {number} The serial number of the key described as a 48 bit number
+     */
+    public getSerialNumber(): number {
         const publicId = this.getPublicId();
-        const modhexConversion = {
+
+        // Convert the modHex to a UIntBE as described here
+        // https://developers.yubico.com/yubico-c/Manuals/modhex.1.html
+        const modHexConversion = {
             b: "1",
             c: "0",
             d: "2",
@@ -193,10 +219,11 @@ export class Response {
             v: "G",
         };
 
+        // Do the conversion and return the 48 bit integer
         return Buffer.from(
             publicId
                 .split("")
-                .map((char) => (modhexConversion as any)[char])
+                .map((char) => modHexConversion[char as keyof typeof modHexConversion])
                 .join(""),
             "hex",
         ).readUIntBE(0, 6);

@@ -1,6 +1,6 @@
 # Typescript (Javascript) Yubico API Implementation
 
-This is a JS implementation of the Yubico Validation Protocol as outlined in their [documentation](https://developers.yubico.com/yubikey-val/Validation_Protocol_V2.0.html). All of the extra security precautions are implemented such as using the client secret to hash the request on its way out, and validate the response on its way in.
+This is a JS implementation of the Yubico Validation Protocol as outlined in their [documentation](https://developers.yubico.com/yubikey-val/Validation_Protocol_V2.0.html). All of the extra security precautions are implemented such as using the client secret to hash the request on its way out, and validate the response on its way in. This library is also incredibly small and has no outside dependencies.
 
 ## Features
 
@@ -8,7 +8,7 @@ This is a JS implementation of the Yubico Validation Protocol as outlined in the
 -   Typescript types built in
 -   Environment Variable Defaults
 
-## Enviroment Variables
+## Environment Variables
 
 ```
 
@@ -35,7 +35,7 @@ but having an environment variable suffices for the requirement. The `options` p
 | `timeout`    |          | `number`                         | none               | `"secure"`     |
 | `apiServers` |          | `string[]`                       | Yubico API Servers | `"secure"`     |
 
-#### `verify(otp: string): Promise<[Response>`
+#### `verify(otp: string): Promise<Response>`
 
 Verify the OTP against the verification servers. This will return a [Response](#Response) class that can be picked apart to get the data you need.
 
@@ -53,11 +53,11 @@ Returns the UTC timestamp that was given in response from the verification serve
 
 Returns the timestamp from when the key was pressed.
 
-#### `getSessionCounter(): string`
+#### `getSessionCounter(): number`
 
 Returns the internal usage counter provided by the key from when it was pressed.
 
-#### `getSessionUse(): string`
+#### `getSessionUse(): number`
 
 Returns the internal session usage counter provided by the key from when it was pressed.
 

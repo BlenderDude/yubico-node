@@ -1,6 +1,6 @@
 {
     "name": "yubico-node",
-    "version": "0.0.1",
+    "version": "1.0.2",
     "description": "A NodeJS implementation of the Yubico OTP API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -12,8 +12,8 @@
     ],
     "license": "MIT",
     "devDependencies": {
-        "@types/node": "^11.13.0",
-        "tslint": "^5.15.0",
+        "@types/node": "^12.6.2",
+        "tslint": "^5.18.0",
         "typescript": "^3.4.1"
     },
     "scripts": {
