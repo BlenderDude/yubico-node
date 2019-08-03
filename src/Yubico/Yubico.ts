@@ -149,7 +149,7 @@ export class Yubico {
                     // Set the search of the url to the request param string
                     url.search = requestParams.toString();
 
-                    const req = https.get(url, (res) => {
+                    const req = https.get(url.href, (res) => {
                         // The data we get will be text, so parse as utf8
                         res.setEncoding("utf8");
 
