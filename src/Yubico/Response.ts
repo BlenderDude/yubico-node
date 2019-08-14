@@ -211,12 +211,11 @@ export class Response {
             j: "8",
             k: "9",
             l: "A",
-            m: "B",
-            n: "C",
-            r: "D",
-            t: "E",
-            u: "F",
-            v: "G",
+            n: "B",
+            r: "C",
+            t: "D",
+            u: "E",
+            v: "F",
         };
 
         // Do the conversion and return the 48 bit integer
