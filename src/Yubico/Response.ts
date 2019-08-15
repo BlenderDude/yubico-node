@@ -55,17 +55,7 @@ export class Response {
         }, {}) as IResponse;
 
         // Return a Response instance from the parsed values
-        return new Response(
-            values.otp,
-            values.nonce,
-            values.h,
-            values.t,
-            values.status,
-            values.timestamp,
-            values.sessioncounter,
-            values.sessionuse,
-            values.sl,
-        );
+        return new Response(values.otp, values.nonce, values.h, values.t, values.status, values.timestamp, values.sessioncounter, values.sessionuse, values.sl);
     }
 
     constructor(
@@ -93,8 +83,7 @@ export class Response {
                 [ResponseStatus.REPLAYED_OTP]: "The OTP has already been seen by the service.",
                 [ResponseStatus.BAD_SIGNATURE]: "The HMAC signature verification failed.",
                 [ResponseStatus.MISSING_PARAMETER]: "The request lacks a parameter.",
-                [ResponseStatus.NO_SUCH_CLIENT]:
-                    "The client id does not exist. If you just registered for one, please give it 10 minutes to propagate",
+                [ResponseStatus.NO_SUCH_CLIENT]: "The client id does not exist. If you just registered for one, please give it 10 minutes to propagate",
                 [ResponseStatus.OPERATION_NOT_ALLOWED]: "The client id is not allowed to verify OTPs.",
                 [ResponseStatus.BACKEND_ERROR]: "Unexpected error in our server. Please contact Yubico if you see this error.",
                 [ResponseStatus.NOT_ENOUGH_ANSWERS]: "Server could not get requested number of syncs during before timeout.",
